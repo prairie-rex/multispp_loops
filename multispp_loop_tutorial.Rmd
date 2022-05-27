@@ -26,8 +26,7 @@ the data as well to give a smaller set to work with, the original data
 is included in the zip folder, but the file we use below is the cleaned
 data, just what we want to use in the tutorial.
 
-Data was filtered to records identified to species or finer, states with
-more than 80 records, and records that have county information. Then we
+Data was filtered to records identified to species or finer, and records that have county information. Then we
 removed records with missing date information.
 
 ```{r}
