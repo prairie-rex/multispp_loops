@@ -1,0 +1,114 @@
+---
+title: "Multispecies Loops"
+author: "Kelsey King"
+date: '2022-05-27'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+```
+
+# Data
+
+This data comes from GBIF.org (27 May 2022) GBIF Occurrence Download
+<https://doi.org/10.15468/dl.vf6fgm>. We collected all lupines
+(*Lupinus* spp.) in the United States, with coordinate uncertainty less
+than \~5000 meters. If you utilize this data elsewhere, please use the
+above citation, see [GBIF citation
+guidelines](https://www.gbif.org/citation-guidelines).
+
+Now let's get started. You'll first want to import the data. I cleaned
+the data as well to give a smaller set to work with, the original data
+is included in the zip folder, but the file we use below is the cleaned
+data, just what we want to use in the tutorial.
+
+Data was filtered to records identified to species or finer, states with
+more than 80 records, and records that have county information. Then we
+removed records with missing date information.
+
+```{r}
+data=read.csv("tutorial_data.csv")
+
+#forming a , which combo name
+#could be used for various sorting
+#I use this as a unique for the type of sort I want
+#could be used to make it only one loop instead of nested/
+data$sppState=as.character(paste(data$specificEpithet,
+                          data$stateProvince))
+
+#for my figures I only want to display 
+#one point for each date in each county,
+#for each species
+#so I can use this code.
+data$day.loc=as.character(paste(data$county, 
+    data$specificEpithet,
+    data$year,data$startDayOfYear))
+
+#removing duplicates
+data1=distinct(data, day.loc, .keep_all = TRUE)
+
+#sorting to more than 50 records for the species-state combo name
+summary.dat=data1 %>% group_by(sppState) %>%
+  summarize(sample.size=n())
+keep.dat=summary.dat[summary.dat$sample.size>50,]
+
+#finally altering the data
+data2=data1[which(data1$sppState %in% keep.dat$sppState),]
+
+```
+
+# Loop
+
+```{r}
+species=unique(data2$specificEpithet)
+#loop for each species
+for(each.spp in 1:length(species)){
+  
+  #set the current species
+  cur.spp=species[each.spp]
+  
+  #sort to the current species data
+  spp.dat=data2[data2$specificEpithet==cur.spp,]
+  
+  #make a list of sites for that species
+  spp.states=unique(spp.dat$stateProvince)
+  
+  
+  #loop for each site
+  for(each.loc in 1:length(spp.states)){
+    
+    #specifying the current site
+    cur.state=spp.states[each.loc]
+    
+    #soting the data to the current site
+    cur.dat=spp.dat[spp.dat$stateProvince==cur.state,]
+    
+    ######################################################
+    #here are examples of things you can do inside this loop
+    #use this code to guide you on making your own loop
+    
+        #plotting the day of year for sightings
+    ggplot(data=cur.dat,aes(x=year,y=startDayOfYear, 
+        color = county))+
+      
+    #this line of code is what lets add in the 
+    #name of the species and the site to the figure
+      geom_jitter()+labs(title=paste("Lupinus",cur.spp,"in", 
+          cur.state))+xlab("Year")+ylab("Day of Year")+
+      
+      #pick a theme you like
+      #I want to hide the legend
+      theme_pubr()+
+      theme(legend.position = "none")
+      
+      #save all the files automatically, with labelling
+    ggsave(paste0("./Figures/Lupinus_",cur.spp,"_", 
+      cur.state,".jpg"), dpi=300,height=4,width=4)
+    }
+}
+
+```
