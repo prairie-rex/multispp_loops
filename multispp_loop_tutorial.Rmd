@@ -26,8 +26,9 @@ the data as well to give a smaller set to work with, the original data
 is included in the zip folder, but the file we use below is the cleaned
 data, just what we want to use in the tutorial.
 
-Data was filtered to records identified to species or finer, and records that have county information. Then we
-removed records with missing date information.
+Data was filtered to records identified to species or finer and records
+that have county information. Then we removed records with missing date
+information.
 
 ```{r}
 data=read.csv("tutorial_data.csv")
@@ -60,7 +61,42 @@ data2=data1[which(data1$sppState %in% keep.dat$sppState),]
 
 ```
 
-# Loop
+# Quick Guide to Loops
+
+I am going to make test data to create a loop plotting the count of each species by year. This loop translate in plain words to: for each species do this task. The task is within the curly brackets. First we need to know what species is the current one, and then we can sort our data, and then make our plot.
+
+What is the variable `each.spp` ? This is a counter that runs from 1 to 4. Each time the loop finishes the task it automatically adds 1 to the number of `each.spp`. You can name this anything you want, many people use a single letter. We could have used 's' for species. 
+
+However, sometimes when starting to learn loops it is better to write a longer variable as you are taking what you want to do and putting it into R code. The counter is used in all for loops, but may or may not be used in the task itself. 
+
+```{r}
+#make a simple data frame
+name=rep(c("orange","leopard","sparrow","asparagus"),10)
+count=round(rnorm(length(name),mean=30,sd=10),0)
+year=sort(rep(2000:2009, 4))
+test.data=data.frame(name,count,year)
+
+#I want to sort by species, so I need a list of that
+species=unique(name)
+
+
+#now I make a loop to do a simple task
+for(each.spp in 1:length(species)){
+
+#what is my current species?
+current.species=species[each.spp]
+
+#what is my current data
+current.data=test.data[test.data$name==current.species,]
+
+#plot it!
+plot(current.data$year,current.data$count,
+     main=paste(current.species))
+
+}
+```
+
+# Using the Loop
 
 ```{r}
 species=unique(data2$specificEpithet)
